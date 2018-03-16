@@ -12,12 +12,11 @@
 // What pin to use to slave-select the SD card reader
 #define SS_SD SS
 
-// What pin to use on the programmer board (PIN_RESET) to reset the target board (RST pin)
-// Comment out if you are using DTR to reset the target board
-// #define PIN_RESET 9
-
-// What pin to use on the programmer to send DTR to the target board
-// Comment out if you connected the programmer's hardware DTR
+// What pin to use on the programmer board to reset the target board using either the target's DTR pin (PIN_DTR) or the target RST pin (PIN_RESET)
+// Connect programmer:PIN_RESET to target:DTR if you define PIN_DTR
+// Connect programmer:PIN_RESET to target:RST if you define PIN_RESET
+// Connecting programmer:DTR to target:DTR doesn't work for me, tips welcome...
+//#define PIN_RESET 4
 #define PIN_DTR 4
 
 // How long to keep the reset pin low to reset the target board

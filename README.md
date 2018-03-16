@@ -21,9 +21,9 @@ How to use:
 8. Reset the programmer to start the upload sketch
 
 The built-in led on the programmer will show:
-- steady light while the upload is in progress
 - sequences of 2 quick blinks if the upload succeeded
 - sequences of 5 quick blinks if the upload failed
+While the upload is in progress the LED will reflect Serial communication between the boards.
 
 The sketch will try standard upload speeds down from 115200 bps. This works well, but as an alternative you can add a
 boards.txt file on the SD card: the sketch will find the first occurence of "upload.speed=" in the file, and will use
@@ -34,11 +34,15 @@ Sample file:
 
 The sketch appends to an upload.log file on the SD card: you can check that on the computer to see what happened.
 
-Tested configurations:
-- mega2560 clone programmer uploading through Serial1
-- (coming next) Uno programmer uploading through Serial
+Tested programmers:
+- mega2560 clone, Serial1, RST
+- Uno, Serial, RST
+- Pro mini 5V 16MHz, Serial, RST and soft DTR
+
+Tested targets:
 - Uno target board, optiboot, 115200
-- Pro mini target board @ 8MHz, minicore, 38400
+- Pro mini 5V 8MHz, minicore, 38400, RST and soft DTR
+- Pro mini 5V 16MHz, minicore, 115200, RST
 
 ## Credits:
 - https://github.com/robokoding/STK500

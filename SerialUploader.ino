@@ -35,6 +35,7 @@ uint32_t baudRate;
 bool sdBegin();
 
 bool uiBegin();
+void cleanup();
 
 void resetTarget();
 
@@ -53,7 +54,6 @@ void setup()
 #endif
     wdt_enable(WDTO_8S);
 
-    pinMode(LED_BUILTIN, OUTPUT);
 #ifdef PIN_DTR
     pinMode(PIN_DTR, OUTPUT);
     digitalWrite(PIN_DTR, HIGH);
@@ -71,7 +71,6 @@ void loop()
     switch (uploadState) {
 
         case UploadState::Start:
-            digitalWrite(LED_BUILTIN, HIGH);
             uploadState = sdBegin() ? UploadState::StartUI : UploadState::Error;
             break;
 
@@ -111,8 +110,7 @@ void loop()
             break;
 
         case UploadState::Error:
-            ui.end();
-            digitalWrite(LED_BUILTIN, LOW);
+            cleanup();
             uploadState = UploadState::ShowError;
             break;
 
@@ -122,8 +120,7 @@ void loop()
             break;
 
         case UploadState::Success:
-            ui.end();
-            digitalWrite(LED_BUILTIN, LOW);
+            cleanup();
             uploadState = UploadState::ShowSuccess;
             break;
 
@@ -157,6 +154,14 @@ bool uiBegin()
     ui.println(F("Serial uploader starting..."));
     ui.flush();
     return true;
+}
+
+void cleanup()
+{
+    ui.end();
+    SPI.end();
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, LOW);
 }
 
 bool sync(uint32_t baudRate)
