@@ -16,12 +16,12 @@
 
 SdFat sd;
 #ifdef SERIAL_UI
-UploaderUI ui = SerialUI(SERIAL_UI);
+SerialUI ui(SERIAL_UI);
 #else
 UploaderUI ui = SDUI(sd);
 #endif
 Stk500Client client(ui, SERIAL_TARGET);
-SketchSource sketch = SDSketchSource(ui, sd);
+SDSketchSource sketch(ui, sd);
 
 enum class UploadState
 {
