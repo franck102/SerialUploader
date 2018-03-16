@@ -40,6 +40,6 @@ Tested configurations:
 - Uno target board, optiboot, 115200
 - Pro mini target board @ 8MHz, minicore, 38400
 
-##Credits:
+## Credits:
 - https://github.com/robokoding/STK500
 - https://github.com/Optiboot/optiboot
