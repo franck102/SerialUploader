@@ -1,5 +1,7 @@
 #include "SDUI.h"
 
+const char s_upload_speed[] PROGMEM = "upload.speed";
+
 bool SDUI::begin()
 {
     return _log.open(_sd.vwd(), "upload.log", O_WRITE | O_CREAT | O_AT_END);
@@ -10,7 +12,7 @@ size_t SDUI::write(uint8_t b)
     return _log.write(b);
 }
 
-unsigned long SDUI::getBaudRate()
+uint32_t SDUI::getBaudRate()
 {
     findBoardsFile();
     if (!_boardsFile.isOpen()) {

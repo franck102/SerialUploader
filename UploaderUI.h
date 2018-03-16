@@ -7,7 +7,7 @@ class UploaderUI : public Print
 {
 public:
 
-    virtual unsigned long getBaudRate() = 0;
+    virtual uint32_t getBaudRate() = 0;
     virtual bool begin() = 0;
     virtual void end() {};
 

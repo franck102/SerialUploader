@@ -16,7 +16,7 @@ public:
 
     // Return baudRate, or 0 for auto-detect
     // Scans boards.txt for the first occurence of upload.speed=, returns strol of the next 16 chars.
-    unsigned long getBaudRate() override;
+    uint32_t getBaudRate() override;
 
     void end() override;
 
@@ -24,8 +24,6 @@ protected:
     SdFat &_sd;
     SdFile _boardsFile;
     SdFile _log;
-
-    const char s_upload_speed[] PROGMEM = "upload.speed";
 
     void findBoardsFile();
 };

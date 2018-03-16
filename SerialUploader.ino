@@ -14,11 +14,12 @@
 #include "SDSketchSource.h"
 #include "SDUI.h"
 
-#define PIN_RESET 9
-
 SdFat sd;
-//SerialUI ui(SERIAL_UI);
+#ifdef SERIAL_UI
+SerialUI ui(SERIAL_UI);
+#else
 SDUI ui(sd);
+#endif
 Stk500Client client(ui, SERIAL_TARGET);
 SDSketchSource sketch(ui, sd);
 
@@ -91,17 +92,14 @@ void loop()
         case UploadState::Syncing:
             if (autoBaud < 0) {
                 uploadState = sync(baudRate) ?
-                    uploadState = UploadState::Working : UploadState::Error;
-            }
-            else if (AUTO_BAUD_RATES[autoBaud] != 0ul) {
+                        uploadState = UploadState::Working : UploadState::Error;
+            } else if (AUTO_BAUD_RATES[autoBaud] != 0ul) {
                 if (sync(AUTO_BAUD_RATES[autoBaud])) {
                     uploadState = UploadState::Working;
-                }
-                else {
+                } else {
                     autoBaud++;
                 }
-            }
-            else {
+            } else {
                 ui.println("Could not synchronize with target board.");
                 uploadState = UploadState::Error;
             }

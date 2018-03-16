@@ -4,9 +4,16 @@
 #include "stk500.h"
 
 // ============= Customization ===================
+//
+// !! SERIAL_TARGET and SERIAL_UI cannot be identical!!
+// If your programmer has only one hardware serial, comment out SERIAL_UI (SD UI will then be used, see main sketch)
+//
 
 // What pin to use to slave-select the SD card reader
 #define SS_SD SS
+
+// What pin to use on the programmer board to reset the target board
+#define PIN_RESET 9
 
 // What HardwareSerial instance to use to communicate with the target board
 #define SERIAL_TARGET Serial1
@@ -15,7 +22,7 @@
 #define SERIAL_TX 18 // USART1_TX
 
 // What HardwareSerial instance to use if using serial-based UI
-#define SERIAL_UI Serial
+//#define SERIAL_UI Serial
 
 // How long to keep the reset pin low to reset the target board
 #define DELAY_RESET 100
