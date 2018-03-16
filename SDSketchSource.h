@@ -13,7 +13,7 @@ public:
 
     int hexRead() override;
 
-    bool begin();
+    bool begin() override;
 
     void reset();
 

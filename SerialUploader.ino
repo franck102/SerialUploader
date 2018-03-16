@@ -16,12 +16,12 @@
 
 SdFat sd;
 #ifdef SERIAL_UI
-SerialUI ui(SERIAL_UI);
+UploaderUI ui = SerialUI(SERIAL_UI);
 #else
-SDUI ui(sd);
+UploaderUI ui = SDUI(sd);
 #endif
 Stk500Client client(ui, SERIAL_TARGET);
-SDSketchSource sketch(ui, sd);
+SketchSource sketch = SDSketchSource(ui, sd);
 
 enum class UploadState
 {
@@ -35,6 +35,7 @@ uint32_t baudRate;
 bool sdBegin();
 
 bool uiBegin();
+
 void cleanup();
 
 void resetTarget();
@@ -80,12 +81,17 @@ void loop()
 
         case UploadState::StartSketch:
             if (!sketch.begin()) {
-                ui.println("Could not locate .hex file on SD card."); ui.flush();
                 uploadState = UploadState::Error;
+            } else {
+                baudRate = ui.getBaudRate();
+                autoBaud = (baudRate == AUTO_BAUD_RATE) ? 0 : -1;
+#if SERIAL_UI == SERIAL_TARGET
+                ui.println(F("No programming serial, done."));
+                uploadState = UploadState::Success;
+#else
+                uploadState = UploadState::Syncing;
+#endif
             }
-            baudRate = ui.getBaudRate();
-            autoBaud = (baudRate == AUTO_BAUD_RATE) ? 0 : -1;
-            uploadState = UploadState::Syncing;
             break;
 
         case UploadState::Syncing:
@@ -99,7 +105,7 @@ void loop()
                     autoBaud++;
                 }
             } else {
-                ui.println("Could not synchronize with target board.");
+                ui.println(F("Could not synchronize with target board."));
                 uploadState = UploadState::Error;
             }
 
@@ -110,6 +116,7 @@ void loop()
             break;
 
         case UploadState::Error:
+            ui.println(F("Serial upload failed."));
             cleanup();
             uploadState = UploadState::ShowError;
             break;
@@ -136,7 +143,7 @@ bool sdBegin()
     sd.begin(SS_SD);
     if (sd.cardErrorCode()) {
 #if defined(DEBUG) && defined(SERIAL_UI)
-        SERIAL_UI.println("Initializing SD card");
+        SERIAL_UI.println(F("Initializing SD card"));
 #endif
         return false;
     }
@@ -145,7 +152,7 @@ bool sdBegin()
 
 bool uiBegin()
 {
-    if (! ui.begin()) {
+    if (!ui.begin()) {
 #if defined(DEBUG) && defined(SERIAL_UI)
         SERIAL_UI.println(F("UI failed to start!"));
 #endif
@@ -239,7 +246,7 @@ UploadState upload()
         count = sketch.readBytes(hex, 128);
 
         if (count < 0) {
-            ui.println("SD read failure!");
+            ui.println(F("SD read failure!"));
             return UploadState::Error;
         }
 //        if ((count % 2) != 0) {
@@ -275,7 +282,7 @@ UploadState upload()
         count = sketch.readBytes(hex, 128);
 
         if (count < 0) {
-            ui.println("SD read failure!");
+            ui.println(F("SD read failure!"));
             return UploadState::Error;
         }
         if (count > 0) {
@@ -320,7 +327,7 @@ UploadState upload()
     if (!check(status, F("Could not leave programming mode."))) {
         return UploadState::Error;
     }
-    ui.println("Programming done, thank you.");
+    ui.println(F("Programming done, thank you."));
 //    client.end();
     return UploadState::Success;
 }

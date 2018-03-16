@@ -5,7 +5,7 @@
 unsigned long BAUD_RATES[NUM_BAUD_RATES] =
         {AUTO_BAUD_RATE, 115200ul, 57600ul, 38400ul, 9600ul, 2400ul};
 
-unsigned long SerialUI::getBaudRate()
+uint32_t SerialUI::getBaudRate()
 {
     _line.println(F("Select baud rate:"));
     for (int i = 0; i < NUM_BAUD_RATES; i++) {
@@ -43,10 +43,10 @@ unsigned long SerialUI::getBaudRate()
 
 bool SerialUI::begin()
 {
-    if (!_line) {
+//    if (!_line) {
         _line.begin(_baudRate);
         while (!_line);
-    }
+//    }
     return true;
 }
 

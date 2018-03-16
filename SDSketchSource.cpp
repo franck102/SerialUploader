@@ -2,22 +2,35 @@
 
 bool SDSketchSource::begin()
 {
+    SdBaseFile file;
     char filename[16];
+    uint16_t found = 0u;
     _sd.vwd()->rewind();
-    while (_file.openNext(_sd.vwd(), O_READ)) {
-        _file.getName(filename, 16);
+    while (file.openNext(_sd.vwd(), O_READ)) {
+        file.getName(filename, 16);
+        file.close();
         if (strlen(filename) > 4 && strcmp(filename + strlen(filename) - 4, ".HEX") == 0) {
-            break;
+            if (found == 0) {
+                _file.open(filename, O_READ);
+            }
+            found++;
         }
-        _file.close();
     }
-    bool found = _file.isOpen();
-    if (found) {
-        _ui.print("Found sketch binary: ");
-        _file.printName(&_ui);
-        _ui.println();
+    switch (found) {
+        case 0:
+            _ui.println(F("No hex file found on SD card."));
+            return false;
+
+        case 1:
+            _ui.print("Found sketch binary: ");
+            _file.printName(&_ui);
+            _ui.println();
+            return true;
+
+        default:
+            _ui.println(F("More than one hex file found on SD card."));
+            return false;
     }
-    return found;
 }
 
 void SDSketchSource::reset()

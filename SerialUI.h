@@ -18,7 +18,7 @@ public:
     {};
 
     bool begin() override;
-    unsigned long getBaudRate() override;
+    uint32_t getBaudRate() override;
 
     size_t write(uint8_t uint8) override;
 
@@ -26,7 +26,7 @@ public:
 
 private:
     HardwareSerial &_line;
-    uint32_t _baudRate;
+    const uint32_t _baudRate;
 
 };
 

@@ -14,6 +14,8 @@ public:
             _ui(ui), _pageAlign(pageAlign), _state(ParseState::Start)
     {};
 
+    virtual bool begin() = 0;
+
     virtual int readBytes(uint8_t *buf, uint16_t size);
     // The memory address for the last bytes obtained from readBytes
     uint16_t getLineAddress();
