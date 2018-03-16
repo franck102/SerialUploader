@@ -8,6 +8,9 @@
 class SDSketchSource : public SketchSource
 {
 public:
+    SDSketchSource(const SDSketchSource&) = delete;
+    void operator=(const SDSketchSource&) = delete;
+
     SDSketchSource(UploaderUI &ui, SdFat &sd) :
             SketchSource(ui), _sd(sd) {};
 

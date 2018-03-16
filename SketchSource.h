@@ -10,6 +10,9 @@ enum class ParseState {
 class SketchSource
 {
 public:
+    SketchSource(const SketchSource&) = delete;
+    void operator=(const SketchSource&) = delete;
+
     SketchSource(UploaderUI &ui, bool pageAlign = true) :
             _ui(ui), _pageAlign(pageAlign), _state(ParseState::Start)
     {};

@@ -15,18 +15,21 @@
 #include "SDUI.h"
 
 SdFat sd;
+
 #ifdef SERIAL_UI
-SerialUI ui(SERIAL_UI);
+UploaderUI &&ui = SerialUI(SERIAL_UI);
 #else
-SDUI ui(sd);
+UploaderUI &&ui = SDUI(sd);
 #endif
+//UploaderUI &ui = __ui;
+
 #ifdef SERIAL_TARGET
 Stk500Client client(ui, SERIAL_TARGET);
 #else
 Stk500Client client(ui, Serial);
 #endif
 
-SDSketchSource sketch(ui, sd);
+SketchSource &&sketch = SDSketchSource(ui, sd);
 
 enum class UploadState
 {

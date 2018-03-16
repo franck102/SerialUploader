@@ -8,6 +8,9 @@ class SDUI : public UploaderUI
 {
 
 public:
+    SDUI(const SDUI&) = delete;
+    void operator=(const SDUI&) = delete;
+
     SDUI(SdFat &sd) : _sd(sd) {}
 
     bool begin() override;

@@ -18,6 +18,9 @@ typedef struct _SktResponse {
 class Stk500Client
 {
 public:
+    Stk500Client(const Stk500Client&) = delete;
+    void operator=(const Stk500Client&) = delete;
+
     Stk500Client(UploaderUI &ui, HardwareSerial &line) :
             _ui(ui), _line(line), _state(StkState::Created),
             _response{Stk::FAILED, _readBuf, 0}
