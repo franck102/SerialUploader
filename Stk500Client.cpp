@@ -7,6 +7,8 @@ void Stk500Client::begin(unsigned long baudRate)
         delay(5);
     }
     _line.begin(baudRate);
+//    _line.setTimeout(STK_TIMEOUT);
+
 #ifdef SERIAL_RX
     pinMode(SERIAL_RX, INPUT_PULLUP);
 #endif
@@ -44,7 +46,7 @@ Stk Stk500Client::sync()
     return response.status;
 }
 
-const StkResponse & Stk500Client::getSignon()
+const StkResponse &Stk500Client::getSignon()
 {
     return execute(StkCommand::GET_SIGN_ON, 7);
 }
@@ -55,9 +57,9 @@ const StkResponse &Stk500Client::readSignature()
     return execute(StkCommand::READ_SIGN, 3, 0, 0);
 }
 
-const StkResponse & Stk500Client::getParameter(StkParam param)
+const StkResponse &Stk500Client::getParameter(StkParam param)
 {
-    uint8_t data[1] = { (uint8_t )param };
+    uint8_t data[1] = {(uint8_t) param};
     return execute(StkCommand::GET_PARAMETER, 1, 1, data);
 }
 
@@ -75,7 +77,7 @@ Stk Stk500Client::leaveProgramming()
 
 Stk Stk500Client::loadAddress(uint16_t address)
 {
-    uint8_t data[2] = { (uint8_t)(address & 0x00FF), (uint8_t)((address & 0xFF00) >> 8)};
+    uint8_t data[2] = {(uint8_t) (address & 0x00FF), (uint8_t) ((address & 0xFF00) >> 8)};
     const StkResponse response = execute(StkCommand::LOAD_ADDRESS, 0, 2, data);
     return response.status;
 }
@@ -83,14 +85,14 @@ Stk Stk500Client::loadAddress(uint16_t address)
 Stk Stk500Client::writeFlash(uint8_t count, uint8_t *data)
 {
     // Cmnd_STK_PROG_PAGE, bytes_high, bytes_low, memtype, data, Sync_CRC_EOP
-    _line.write((uint8_t)StkCommand::PROG_PAGE);
+    _line.write((uint8_t) StkCommand::PROG_PAGE);
     _line.write(0x00);
     _line.write(count);
     _line.write('F');
     for (int i = 0; i < count; ++i) {
         _line.write(data[i]);
     }
-    _line.write((uint8_t)Stk::CRC_EOP);
+    _line.write((uint8_t) Stk::CRC_EOP);
     _line.flush();
 #ifdef DEBUG
     _ui.print(F("SND"));
@@ -117,11 +119,11 @@ Stk Stk500Client::writeFlash(uint8_t count, uint8_t *data)
 
 StkResponse Stk500Client::readFlash(uint8_t count, uint8_t *buf)
 {
-    _line.write((uint8_t)StkCommand::READ_PAGE);
+    _line.write((uint8_t) StkCommand::READ_PAGE);
     _line.write(0x00);
     _line.write(count);
     _line.write('F');
-    _line.write((uint8_t)Stk::CRC_EOP);
+    _line.write((uint8_t) Stk::CRC_EOP);
     _line.flush();
 #ifdef DEBUG
     _ui.print(F("SND"));
@@ -148,12 +150,12 @@ StkResponse Stk500Client::readFlash(uint8_t count, uint8_t *buf)
 
 // =================================================
 
-const StkResponse & Stk500Client::execute(StkCommand command, uint8_t responseSize)
+const StkResponse &Stk500Client::execute(StkCommand command, uint8_t responseSize)
 {
-    return execute(command, responseSize, 0, (uint8_t *)0);
+    return execute(command, responseSize, 0, (uint8_t *) 0);
 }
 
-const StkResponse & Stk500Client::execute(StkCommand cmd, uint8_t responseSize, uint8_t argCount, uint8_t *args)
+const StkResponse &Stk500Client::execute(StkCommand cmd, uint8_t responseSize, uint8_t argCount, uint8_t *args)
 {
     send(cmd, argCount, args);
     uint8_t status = getByte();
@@ -230,7 +232,7 @@ void Stk500Client::send(StkCommand cmd, uint8_t argCount, uint8_t *args)
 uint8_t Stk500Client::getByte()
 {
     uint32_t start = millis();
-    while (!_line.available()) {
+    while (_line.available() == 0) {
         if (millis() - start > STK_TIMEOUT) {
             return (uint8_t) Stk::NOSYNC;
         }
@@ -245,11 +247,23 @@ uint8_t Stk500Client::getByte()
     printByte(_ui, b);
     _ui.println();
 #endif
-    return b == 0 ? (uint8_t)Stk::NOSYNC : b;
+    // 0 is not a valid stk500 status, it's probably noise on the line
+    return b == 0 ? (uint8_t) Stk::NOSYNC : b;
 }
 
 Stk Stk500Client::readData(uint8_t size, uint8_t *buf)
 {
+//    size_t read = _line.readBytes(buf, size);
+//#ifdef DEBUG
+//    if (size <= 16 && read > 0) {
+//        _ui.print(F("RCV"));
+//        for (int i = 0; i < read; ++i) {
+//            printByte(_ui, buf[i]);
+//        }
+//    }
+//#endif
+//    return (read != size) ? Stk::NOSYNC : toStk(getByte());
+
     uint32_t start = millis();
 
     _readLen = 0;
@@ -258,9 +272,9 @@ Stk Stk500Client::readData(uint8_t size, uint8_t *buf)
     }
     while (_readLen < size) {
         if (millis() - start > STK_TIMEOUT) {
-            return Stk ::NOSYNC;
+            return Stk::NOSYNC;
         }
-        if (_line.available()) {
+        if (_line.available() > 0) {
 
             uint8_t b = (uint8_t) _line.read();
 #ifdef DEBUG

@@ -30,13 +30,12 @@
 
 
 // See ifdefs below
-//#define PROGRAMMER_UNO
+#define PROGRAMMER_UNO
 //#define PROGRAMMER_MEGA
-#define PROGRAMMER_DEBUG
+//#define PROGRAMMER_DEBUG
 
 #ifdef PROGRAMMER_DEBUG
 #define SERIAL_UI Serial
-#define SERIAL_TARGET Serial
 #endif
 
 // Target board on Serial, UI on the SD card

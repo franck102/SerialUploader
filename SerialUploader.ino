@@ -18,9 +18,14 @@ SdFat sd;
 #ifdef SERIAL_UI
 SerialUI ui(SERIAL_UI);
 #else
-UploaderUI ui = SDUI(sd);
+SDUI ui(sd);
 #endif
+#ifdef SERIAL_TARGET
 Stk500Client client(ui, SERIAL_TARGET);
+#else
+Stk500Client client(ui, Serial);
+#endif
+
 SDSketchSource sketch(ui, sd);
 
 enum class UploadState
@@ -85,7 +90,7 @@ void loop()
             } else {
                 baudRate = ui.getBaudRate();
                 autoBaud = (baudRate == AUTO_BAUD_RATE) ? 0 : -1;
-#if SERIAL_UI == SERIAL_TARGET
+#ifndef SERIAL_TARGET
                 ui.println(F("No programming serial, done."));
                 uploadState = UploadState::Success;
 #else
