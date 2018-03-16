@@ -12,17 +12,13 @@
 // What pin to use to slave-select the SD card reader
 #define SS_SD SS
 
-// What pin to use on the programmer board to reset the target board
-#define PIN_RESET 9
+// What pin to use on the programmer board (PIN_RESET) to reset the target board (RST pin)
+// Comment out if you are using DTR to reset the target board
+// #define PIN_RESET 9
 
-// What HardwareSerial instance to use to communicate with the target board
-#define SERIAL_TARGET Serial1
-// Pins to pull up high to avoid noise on SERIAL_TARGET
-#define SERIAL_RX 19 // USART1_RX
-#define SERIAL_TX 18 // USART1_TX
-
-// What HardwareSerial instance to use if using serial-based UI
-//#define SERIAL_UI Serial
+// What pin to use on the programmer to send DTR to the target board
+// Comment out if you connected the programmer's hardware DTR
+#define PIN_DTR 4
 
 // How long to keep the reset pin low to reset the target board
 #define DELAY_RESET 100
@@ -32,6 +28,33 @@
 
 // Delay in ms after each flash write to the target. Found in original implementations, uncomment to use
 //#define DELAY_FLASH_WRITE 50
+
+
+// See ifdefs below
+#define PROGRAMMER_UNO
+//#define PROGRAMMER_MEGA
+
+// Target board on Serial, UI on the SD card
+#ifdef PROGRAMMER_UNO
+
+// What HardwareSerial instance to use to communicate with the target board
+#define SERIAL_TARGET Serial
+// Pins to pull up high to avoid noise on SERIAL_TARGET. Needed for example on ATMega2560's Serial1
+//#define SERIAL_RX 19 // USART1_RX
+//#define SERIAL_TX 18 // USART1_TX
+
+// What HardwareSerial instance to use if using serial-based UI
+//#define SERIAL_UI Serial
+
+#endif // PROGRAMMER_UNO
+
+// Target board on Serial1, UI on Serial
+#ifdef PROGRAMMER_MEGA
+#define SERIAL_TARGET Serial1
+#define SERIAL_RX 19 // USART1_RX
+#define SERIAL_TX 18 // USART1_TX
+#define SERIAL_UI Serial
+#endif // PROGRAMMER_MEGA
 
 // ================================================
 

@@ -4,7 +4,12 @@ const char s_upload_speed[] PROGMEM = "upload.speed";
 
 bool SDUI::begin()
 {
-    return _log.open(_sd.vwd(), "upload.log", O_WRITE | O_CREAT | O_AT_END);
+    bool ok = _log.open(_sd.vwd(), "upload.log", O_WRITE | O_CREAT | O_AT_END);
+    if (ok) {
+        _log.println("SD UI started.");
+        _log.flush();
+    }
+    return ok;
 }
 
 size_t SDUI::write(uint8_t b)
@@ -71,5 +76,11 @@ void SDUI::end()
     _log.close();
     _boardsFile.close();
     UploaderUI::end();
+}
+
+void SDUI::flush()
+{
+    Print::flush();
+    _log.flush();
 }
 

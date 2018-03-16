@@ -25,12 +25,16 @@ SDSketchSource sketch(ui, sd);
 
 enum class UploadState
 {
-    Start, Syncing, Working, Success, Error, ShowError, ShowSuccess
+    Start, Syncing, Working, Success, Error, ShowError, ShowSuccess, StartUI, StartSketch
 };
 UploadState uploadState;
 
 int autoBaud;
 uint32_t baudRate;
+
+bool sdBegin();
+
+bool uiBegin();
 
 void resetTarget();
 
@@ -44,31 +48,20 @@ void blink(uint8_t count);
 
 void setup()
 {
-#ifdef DEBUG
-    SERIAL_UI.begin(115300);
+#if defined(DEBUG) && defined(SERIAL_UI)
+    SERIAL_UI.begin(115200);
 #endif
     wdt_enable(WDTO_8S);
 
     pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, HIGH);
-
-    sd.begin(SS_SD);
-    if (sd.cardErrorCode()) {
-#ifdef DEBUG
-        SERIAL_UI.println("Initializing SD card");
+#ifdef PIN_DTR
+    pinMode(PIN_DTR, OUTPUT);
+    digitalWrite(PIN_DTR, HIGH);
 #endif
-        delay(10000);
-    }
-
-    if (!ui.begin()) {
-#ifdef DEBUG
-        SERIAL_UI.println(F("UI failed to start!"));
-#endif
-        delay(10000);
-    }
-    ui.println(F("Serial uploader starting..."));
-
+#ifdef PIN_RESET
     pinMode(PIN_RESET, OUTPUT);
+#endif
+
     uploadState = UploadState::Start;
 }
 
@@ -78,12 +71,19 @@ void loop()
     switch (uploadState) {
 
         case UploadState::Start:
+            digitalWrite(LED_BUILTIN, HIGH);
+            uploadState = sdBegin() ? UploadState::StartUI : UploadState::Error;
+            break;
 
+        case UploadState::StartUI:
+            uploadState = uiBegin() ? UploadState::StartSketch : UploadState::Error;
+            break;
+
+        case UploadState::StartSketch:
             if (!sketch.begin()) {
-                ui.println("Could not locate .hex file on SD card.");
+                ui.println("Could not locate .hex file on SD card."); ui.flush();
                 uploadState = UploadState::Error;
             }
-            Serial.println("Getting baud rate");
             baudRate = ui.getBaudRate();
             autoBaud = (baudRate == AUTO_BAUD_RATE) ? 0 : -1;
             uploadState = UploadState::Syncing;
@@ -134,6 +134,31 @@ void loop()
     }
 }
 
+bool sdBegin()
+{
+    sd.begin(SS_SD);
+    if (sd.cardErrorCode()) {
+#if defined(DEBUG) && defined(SERIAL_UI)
+        SERIAL_UI.println("Initializing SD card");
+#endif
+        return false;
+    }
+    return true;
+}
+
+bool uiBegin()
+{
+    if (! ui.begin()) {
+#if defined(DEBUG) && defined(SERIAL_UI)
+        SERIAL_UI.println(F("UI failed to start!"));
+#endif
+        return false;
+    }
+    ui.println(F("Serial uploader starting..."));
+    ui.flush();
+    return true;
+}
+
 bool sync(uint32_t baudRate)
 {
     wdt_reset();
@@ -155,6 +180,7 @@ bool sync(uint32_t baudRate)
     }
     if (syncCount < 1) {
         ui.println(F(" failed"));
+        client.end();
         return false;
     }
     ui.println(F(" done."));
@@ -317,6 +343,7 @@ bool check(Stk status, FString msg)
 
 void resetTarget()
 {
+#ifdef PIN_RESET
     ui.print(F("Resetting target board..."));
     // Reset the target board
     digitalWrite(PIN_RESET, LOW);
@@ -324,4 +351,5 @@ void resetTarget()
     digitalWrite(PIN_RESET, HIGH);
     delay(DELAY_RESET);
     ui.println(F(" done."));
+#endif
 }

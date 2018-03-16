@@ -14,6 +14,8 @@ public:
 
     size_t write(uint8_t uint8) override;
 
+    void flush() override;
+
     // Return baudRate, or 0 for auto-detect
     // Scans boards.txt for the first occurence of upload.speed=, returns strol of the next 16 chars.
     uint32_t getBaudRate() override;

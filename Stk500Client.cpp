@@ -13,6 +13,10 @@ void Stk500Client::begin(unsigned long baudRate)
 #ifdef SERIAL_TX
     pinMode(SERIAL_TX, INPUT_PULLUP);
 #endif
+#ifdef PIN_DTR
+    digitalWrite(PIN_DTR, LOW);
+    delay(DELAY_RESET);
+#endif
     while (!_line) {}
     // Drain noise
     while (_line.available() > 0) {
@@ -28,6 +32,9 @@ void Stk500Client::begin(unsigned long baudRate)
 
 void Stk500Client::end()
 {
+#ifdef PIN_DTR
+    digitalWrite(PIN_DTR, HIGH);
+#endif
     _line.end();
 }
 
