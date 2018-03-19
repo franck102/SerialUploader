@@ -36,10 +36,11 @@ SketchSource &&sketch = SDSketchSource(ui, sd);
 
 enum class UploadState
 {
-    Start, Syncing, Identify, Upload, Success, Error, ShowError, ShowSuccess, StartUI, StartSketch
+    Start, CheckFlags, StartSketch, Syncing, Identify, Upload, Success, Error, ShowError, ShowSuccess
 };
 UploadState uploadState;
 
+uint8_t statusFlags;
 int autoBaud;
 uint32_t baudRate;
 SignatureType mcuSignature;
@@ -62,6 +63,9 @@ bool identifyMCU(byte *sig, size_t sigSize);
 // ===========
 void setup()
 {
+    statusFlags = MCUSR;
+    MCUSR = 0x00;
+
 #if defined(DEBUG) && defined(SERIAL_UI)
     SERIAL_UI.begin(115200);
 #endif
@@ -84,11 +88,17 @@ void loop()
     switch (uploadState) {
 
         case UploadState::Start:
-            uploadState = sdBegin() ? UploadState::StartUI : UploadState::Error;
+            uploadState = sdBegin() && uiBegin() ? UploadState::CheckFlags : UploadState::Error;
             break;
 
-        case UploadState::StartUI:
-            uploadState = uiBegin() ? UploadState::StartSketch : UploadState::Error;
+        case UploadState::CheckFlags:
+            if (statusFlags & WDRF) {
+                ui.println("Uploader timed out, please reset to retry.");
+                uploadState = UploadState::Error;
+            }
+            else {
+                uploadState = UploadState::StartSketch;
+            }
             break;
 
         case UploadState::StartSketch:
@@ -218,7 +228,6 @@ bool sync(uint32_t baudRate)
 bool readSignature()
 {
     StkResponse response;
-    Stk status;
 
     response = client.readSignature();
     if (!check(response.status, F("Could not read device signature"))) {
