@@ -1,7 +1,3 @@
-//
-// Created by Franck on 3/14/2018.
-//
-
 #ifndef ARDUINO_SERIALUI_H
 #define ARDUINO_SERIALUI_H
 
@@ -18,9 +14,9 @@ public:
     {};
 
     bool begin() override;
-    uint32_t getBaudRate() override;
 
     size_t write(uint8_t uint8) override;
+    int8_t choose(UIChoices &choices) override;
 
 //    void flush() override;
 

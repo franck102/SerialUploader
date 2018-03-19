@@ -57,13 +57,13 @@
 #define SERIAL_TARGET Serial1
 #define SERIAL_RX 19 // USART1_RX
 #define SERIAL_TX 18 // USART1_TX
-#define SERIAL_UI Serial
+//#define SERIAL_UI Serial
 #endif // PROGRAMMER_MEGA
 
 // ================================================
 
 #define AUTO_BAUD_RATE 0ul
-const uint32_t AUTO_BAUD_RATES[] = { 115200ul, 57600ul, 38400ul, 9600ul, 2400ul, 0ul };
+const uint32_t BAUD_RATES[] = { 115200ul, 57600ul, 38400ul, 9600ul, 2400ul };
 
 // number of items in an array
 #define NUMITEMS(arg) ((unsigned int) (sizeof (arg) / sizeof (arg [0])))

@@ -1,25 +1,22 @@
 #include <avr/wdt.h>
 #include "SerialUI.h"
 
-#define NUM_BAUD_RATES 6
-unsigned long BAUD_RATES[NUM_BAUD_RATES] =
-        {AUTO_BAUD_RATE, 115200ul, 57600ul, 38400ul, 9600ul, 2400ul};
-
-uint32_t SerialUI::getBaudRate()
+int8_t SerialUI::choose(UIChoices &choices)
 {
-    _line.println(F("Select baud rate:"));
-    for (int i = 0; i < NUM_BAUD_RATES; i++) {
+    choices.prompt(_line);
+    _line.println();
+    int choiceCount;
+    for (choiceCount = 0; choices.hasNext(); choiceCount++) {
         _line.print(F("\t["));
-        _line.print((char) ('a' + i));
+        _line.print((char) ('a' + choiceCount));
         _line.print(F("] "));
-        if (BAUD_RATES[i] == AUTO_BAUD_RATE) {
-            _line.println(F("auto-detect"));
-        } else {
-            _line.println(BAUD_RATES[i]);
-        }
+        choices.next(_line);
+        _line.println();
     }
+
     while (_line.available()) _line.read();
-    _line.print(F("Baud rate ([a]): "));
+    choices.prompt(_line);
+    _line.print(F(" ([a]): "));
     _line.flush();
     wdt_disable();
     while (!_line.available());
@@ -30,23 +27,21 @@ uint32_t SerialUI::getBaudRate()
         case 0x0A:
         case 0x0D:
             // CR / LF
-            return BAUD_RATES[0];
+            return 0;
         default:
             int idx = entered - 'a';
-            if (idx >= 0 && idx < NUM_BAUD_RATES) {
-                return BAUD_RATES[idx];
+            if (idx >= 0 && idx < choiceCount) {
+                return idx;
             }
     }
-    // Bad entry
-    return getBaudRate();
+    return choose(choices);
 }
 
 bool SerialUI::begin()
 {
-//    if (!_line) {
-        _line.begin(_baudRate);
-        while (!_line);
-//    }
+    _line.begin(_baudRate);
+    while (!_line);
+
     return true;
 }
 
