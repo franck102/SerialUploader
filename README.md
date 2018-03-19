@@ -23,6 +23,7 @@ How to use:
     - Vin                   -> Vin
     - Gnd                   -> Gnd
     - PIN_RESET             -> Rst
+      (or PIN_DTR -> DTR if so configured in SerialUploader.h)
     - SERIAL_TARGET Rx pin  -> target's Tx pin
     - SERIAL_TARGET Tx pin  -> target's Rx pin
 8. Reset the programmer to start the upload sketch
