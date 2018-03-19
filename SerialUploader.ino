@@ -16,6 +16,7 @@
 #include "SDSketchSource.h"
 #include "SDUI.h"
 #include "Signatures.h"
+#include "BaudRateChoices.h"
 
 SdFat sd;
 
@@ -50,6 +51,7 @@ SignatureType mcuSignature;
 
 bool sdBegin();
 bool uiBegin();
+uint32_t getBaudRate();
 void cleanup();
 void resetTarget();
 bool check(StkResponse response);
@@ -105,7 +107,7 @@ void loop()
             if (!sketch.begin()) {
                 uploadState = UploadState::Error;
             } else {
-                baudRate = ui.getBaudRate();
+                baudRate = getBaudRate();
                 autoBaud = (baudRate == AUTO_BAUD_RATE) ? 0 : -1;
 #ifndef SERIAL_TARGET
                 ui.println(F("No programming serial, done."));
@@ -118,15 +120,18 @@ void loop()
 
         case UploadState::Syncing:
             if (autoBaud < 0) {
+                // Fixed
                 uploadState = sync(baudRate) ?
-                        uploadState = UploadState::Identify : UploadState::Error;
-            } else if (AUTO_BAUD_RATES[autoBaud] != 0ul) {
-                if (sync(AUTO_BAUD_RATES[autoBaud])) {
+                        UploadState::Identify : UploadState::Error;
+            } else if (autoBaud < NUMITEMS(BAUD_RATES)) {
+                // Auto-detect
+                if (sync(BAUD_RATES[autoBaud])) {
                     uploadState = UploadState::Identify;
                 } else {
                     autoBaud++;
                 }
             } else {
+                // auto-detect, out of options
                 ui.println(F("Could not synchronize with target board."));
                 uploadState = UploadState::Error;
             }
@@ -161,6 +166,13 @@ void loop()
             delay(800);
             break;
     }
+}
+
+uint32_t getBaudRate()
+{
+    BaudRateChoices choices;
+    int8_t choice = ui.choose(choices);
+    return (choice <= 0) ? AUTO_BAUD_RATE : BAUD_RATES[choice - 1];
 }
 
 bool sdBegin()

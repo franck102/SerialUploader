@@ -1,36 +1,87 @@
 #include "SDSketchSource.h"
 
-bool SDSketchSource::begin()
+class SDChoices : public UIChoices
 {
-    SdBaseFile file;
-    char filename[16];
-    uint16_t found = 0u;
-    _sd.vwd()->rewind();
-    while (file.openNext(_sd.vwd(), O_READ)) {
-        file.getName(filename, 16);
-        file.close();
-        if (strlen(filename) > 4 && strcmp(filename + strlen(filename) - 4, ".HEX") == 0) {
-            if (found == 0) {
-                _file.open(filename, O_READ);
+public:
+    SDChoices(FatFile *dir, SdFile &file, FString prompt, const char *suffix) :
+            _dir(dir), _file(file), _prompt(prompt), _suffix(suffix), _multi(false)
+    {
+        _dir->rewind();
+        next();
+    }
+
+    void prompt(Print &display) override
+    {
+        display.print(_prompt);
+    }
+
+    bool hasNext() override
+    {
+        return _file.isOpen();
+    }
+
+    void next(Print &display) override
+    {
+        if (_file.isOpen()) {
+            _file.printName(&display);
+        }
+        next();
+    }
+
+    void next() override
+    {
+        if (_file.isOpen()) {
+            _multi = true;
+            _file.close();
+        }
+        while (_file.openNext(_dir, O_READ)) {
+            _file.getName(_filename, 16);
+            if (strlen(_filename) > strlen(_suffix) && strcmp(_filename + strlen(_filename) - 4, _suffix) == 0) {
+                return;
             }
-            found++;
+            _file.close();
         }
     }
-    switch (found) {
-        case 0:
-            _ui.println(F("No hex file found on SD card."));
-            return false;
 
-        case 1:
-            _ui.print("Found sketch binary: ");
-            _file.printName(&_ui);
-            _ui.println();
-            return true;
-
-        default:
-            _ui.println(F("More than one hex file found on SD card."));
-            return false;
+    void openFile(SdFile &file, int8_t choice)
+    {
+        _dir->rewind();
+        for (int i = 0; i <= choice; ++i) {
+            next();
+        }
     }
+
+    bool foundSome()
+    {
+        return _multi;
+    }
+
+private:
+    FatFile *_dir;
+    SdFile &_file;
+    char _filename[16];
+    FString _prompt;
+    const char *_suffix;
+    bool _multi;
+};
+
+bool SDSketchSource::begin()
+{
+    SDChoices choices(_sd.vwd(), _file, F("Choose the sketch to upload:"), ".HEX");
+    int8_t choice = _ui.choose(choices);
+
+    if (choice < 0) {
+        _ui.println(choices.foundSome() ?
+                    F("More than one .hex file found on SD card") :
+                    F("No hex file found on SD card."));
+        return false;
+    }
+
+    choices.openFile(_file, choice);
+    _ui.print(F("Sketch file: "));
+    _file.printName(&_ui);
+    _ui.println();
+    return true;
 }
 
 void SDSketchSource::reset()

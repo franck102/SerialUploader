@@ -17,41 +17,6 @@ size_t SDUI::write(uint8_t b)
     return _log.write(b);
 }
 
-uint32_t SDUI::getBaudRate()
-{
-    findBoardsFile();
-    if (!_boardsFile.isOpen()) {
-        return AUTO_BAUD_RATE;
-    }
-    int len = strlen_P(s_upload_speed);
-    int pos = 0;
-    int c;
-    _boardsFile.seekSet(0);
-    for (c = _boardsFile.read(); c >= 0 && pos < len; c = _boardsFile.read()) {
-        if (c == pgm_read_byte_near(s_upload_speed + pos)) {
-            pos++;
-        }
-        else {
-            pos = 0;
-        }
-    }
-    if (pos != len) {
-        return AUTO_BAUD_RATE;
-    }
-
-    while (c >= 0 && c != '=') {
-        c = _boardsFile.read();
-    }
-    char buf[16];
-    _boardsFile.read(buf, 16);
-#ifdef DEBUG
-    Serial.print(F("speed buf \"")); Serial.println(buf); Serial.print(" yields ");
-    Serial.println(strtoul(buf, 0, 10));
-#endif
-
-    return strtoul(buf, 0, 10);
-}
-
 void SDUI::findBoardsFile()
 {
     char filename[16];
