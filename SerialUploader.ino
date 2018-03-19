@@ -198,7 +198,7 @@ bool sync(uint32_t baudRate)
     ui.print(F(" bps..."));
     // Sync with target
     uint8_t syncCount = 0;
-    for (int i = 0; i < 15 && syncCount < 1; i++) {
+    for (int i = 0; i < 8 && syncCount < 1; i++) {
         wdt_reset();
         Stk status = client.sync();
         if (status == Stk::OK) {
