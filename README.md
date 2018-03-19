@@ -2,6 +2,13 @@
 Serial upload sketch for Arduino.
 
 This sketch turns your Arduino into a standalone serial programmer.
+
+The only protocol supported is stk500v1 (a.k.a. "arduino" in the IDE's boards.txt), with support for page sizes greater
+ than 128kb; this covers atmega2560/2561 boards with the megacore bootloaders installed.
+ 
+ The IDE's default bootloader for the Arduino Mega uses the wiring (a.k.a. stk500v2) protocol,
+and is not supported.
+
 How to use:
 
 1. Prepare a programmer board with an SD card
@@ -42,7 +49,8 @@ Tested programmers:
 Tested targets:
 - Uno target board, optiboot, 115200
 - Pro mini 5V 8MHz, minicore, 38400, RST and soft DTR
-- Pro mini 5V 16MHz, minicore, 115200, RST
+- Pro mini 5V 16MHz, MiniCore, 115200, RST
+- ATMega2560 pro mini (clone), MegaCore, 115200, RST
 
 ## Credits:
 - https://github.com/robokoding/STK500
