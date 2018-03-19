@@ -47,3 +47,4 @@ Tested targets:
 ## Credits:
 - https://github.com/robokoding/STK500
 - https://github.com/Optiboot/optiboot
+- https://github.com/nickgammon/arduino_sketches
