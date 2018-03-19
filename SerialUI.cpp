@@ -55,8 +55,8 @@ size_t SerialUI::write(uint8_t c)
     return _line.write(c);
 }
 
-void SerialUI::flush()
-{
-    _line.flush();
-}
+//void SerialUI::flush()
+//{
+//    _line.flush();
+//}
 

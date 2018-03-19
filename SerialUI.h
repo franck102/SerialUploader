@@ -22,7 +22,7 @@ public:
 
     size_t write(uint8_t uint8) override;
 
-    void flush() override;
+//    void flush() override;
 
 private:
     HardwareSerial &_line;

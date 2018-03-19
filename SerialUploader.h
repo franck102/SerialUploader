@@ -16,8 +16,8 @@
 // Connect programmer:PIN_RESET to target:DTR if you define PIN_DTR
 // Connect programmer:PIN_RESET to target:RST if you define PIN_RESET
 // Connecting programmer:DTR to target:DTR doesn't work for me, tips welcome...
-//#define PIN_RESET 4
-#define PIN_DTR 4
+#define PIN_RESET 4
+//#define PIN_DTR 4
 
 // How long to keep the reset pin low to reset the target board
 #define DELAY_RESET 100
@@ -30,8 +30,8 @@
 
 
 // See ifdefs below
-#define PROGRAMMER_UNO
-//#define PROGRAMMER_MEGA
+//#define PROGRAMMER_UNO
+#define PROGRAMMER_MEGA
 //#define PROGRAMMER_DEBUG
 
 #ifdef PROGRAMMER_DEBUG
@@ -64,6 +64,9 @@
 
 #define AUTO_BAUD_RATE 0ul
 const uint32_t AUTO_BAUD_RATES[] = { 115200ul, 57600ul, 38400ul, 9600ul, 2400ul, 0ul };
+
+// number of items in an array
+#define NUMITEMS(arg) ((unsigned int) (sizeof (arg) / sizeof (arg [0])))
 
 typedef const __FlashStringHelper *FString;
 #define printByte(out, b) out.print(F(" 0x")); out.print((uint8_t)b, HEX)

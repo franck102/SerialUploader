@@ -78,9 +78,9 @@ void SDUI::end()
     UploaderUI::end();
 }
 
-void SDUI::flush()
-{
-    Print::flush();
-    _log.flush();
-}
+//void SDUI::flush()
+//{
+//    Print::flush();
+//    _log.flush();
+//}
 

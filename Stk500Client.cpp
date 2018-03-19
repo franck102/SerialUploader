@@ -29,7 +29,6 @@ void Stk500Client::begin(unsigned long baudRate)
     _ui.print(baudRate);
     _ui.println();
 #endif
-    setState(StkState::Started);
 }
 
 void Stk500Client::end()
@@ -51,7 +50,6 @@ const StkResponse &Stk500Client::getSignon()
     return execute(StkCommand::GET_SIGN_ON, 7);
 }
 
-
 const StkResponse &Stk500Client::readSignature()
 {
     return execute(StkCommand::READ_SIGN, 3, 0, 0);
@@ -66,6 +64,7 @@ const StkResponse &Stk500Client::getParameter(StkParam param)
 Stk Stk500Client::enterProgramming()
 {
     const StkResponse response = execute(StkCommand::ENTER_PROGMODE);
+    _extendedAddress = 0xFF;
     return response.status;
 }
 
@@ -75,19 +74,32 @@ Stk Stk500Client::leaveProgramming()
     return response.status;
 }
 
-Stk Stk500Client::loadAddress(uint16_t address)
+Stk Stk500Client::loadAddress(uint32_t wordAddress)
 {
-    uint8_t data[2] = {(uint8_t) (address & 0x00FF), (uint8_t) ((address & 0xFF00) >> 8)};
+    uint8_t extendedAddress = (wordAddress >> 16) & 0xFF;
+    if (extendedAddress != _extendedAddress) {
+        uint8_t data[4];
+        data[0] = (uint8_t) AvrCommand::AVR_OP_LOAD_EXT_ADDR;
+        data[1] = 0;
+        data[2] = extendedAddress;
+        data[3] = 0;
+        const StkResponse response = execute(StkCommand::UNIVERSAL, 1, 4, data);
+        if (response.status != Stk::OK) {
+            return response.status;
+        }
+        _extendedAddress = extendedAddress;
+    }
+    uint8_t data[2] = {(uint8_t) (wordAddress & 0x00FF), (uint8_t) ((wordAddress & 0xFF00) >> 8)};
     const StkResponse response = execute(StkCommand::LOAD_ADDRESS, 0, 2, data);
     return response.status;
 }
 
-Stk Stk500Client::writeFlash(uint8_t count, uint8_t *data)
+Stk Stk500Client::writeFlash(uint16_t count, uint8_t *data)
 {
     // Cmnd_STK_PROG_PAGE, bytes_high, bytes_low, memtype, data, Sync_CRC_EOP
     _line.write((uint8_t) StkCommand::PROG_PAGE);
-    _line.write(0x00);
-    _line.write(count);
+    _line.write((count >> 8) & 0xFF);
+    _line.write(count & 0xFF);
     _line.write('F');
     for (int i = 0; i < count; ++i) {
         _line.write(data[i]);
@@ -97,8 +109,8 @@ Stk Stk500Client::writeFlash(uint8_t count, uint8_t *data)
 #ifdef DEBUG
     _ui.print(F("SND"));
     printByte(_ui, StkCommand::PROG_PAGE);
-    printByte(_ui, 0x00);
-    printByte(_ui, count);
+    printByte(_ui, (count >> 8) & 0xFF);
+    printByte(_ui, count & 0xFF);
     _ui.print(F(" F"));
     printByte(_ui, data[0]);
     _ui.print(F(" ..."));
@@ -117,19 +129,19 @@ Stk Stk500Client::writeFlash(uint8_t count, uint8_t *data)
     }
 }
 
-StkResponse Stk500Client::readFlash(uint8_t count, uint8_t *buf)
+StkResponse Stk500Client::readFlash(uint16_t count, uint8_t *buf)
 {
     _line.write((uint8_t) StkCommand::READ_PAGE);
-    _line.write(0x00);
-    _line.write(count);
+    _line.write((count >> 8) & 0xFF);
+    _line.write(count & 0xFF);
     _line.write('F');
     _line.write((uint8_t) Stk::CRC_EOP);
     _line.flush();
 #ifdef DEBUG
     _ui.print(F("SND"));
     printByte(_ui, StkCommand::READ_PAGE);
-    printByte(_ui, 0x00);
-    printByte(_ui, count);
+    printByte(_ui, (count >> 8) & 0xFF);
+    printByte(_ui, count & 0xFF);
     _ui.print(F(" F"));
     printByte(_ui, Stk::CRC_EOP);
     _ui.println();
@@ -170,44 +182,6 @@ const StkResponse &Stk500Client::execute(StkCommand cmd, uint8_t responseSize, u
             break;
     }
     return _response;
-}
-
-void Stk500Client::setState(StkState state)
-{
-    if (_state == state) {
-        return;
-    }
-#ifdef DEBUG
-    _ui.print(F("STK: "));
-    printState(_ui, _state);
-    _ui.print(F(" -> "));
-    printState(_ui, state);
-    _ui.println();
-#endif
-    _state = state;
-}
-
-StkState Stk500Client::state()
-{
-    return _state;
-}
-
-void Stk500Client::printState(Print &out, StkState state)
-{
-    switch (state) {
-        case StkState::Created:
-            out.print(F("Created"));
-            break;
-        case StkState::Started:
-            out.print(F("Begun"));
-            break;
-        case StkState::InSync:
-            out.print(F("InSync"));
-            break;
-        case StkState::SyncWait:
-            out.print(F("SyncWait"));
-            break;
-    }
 }
 
 void Stk500Client::send(StkCommand cmd, uint8_t argCount, uint8_t *args)
@@ -251,7 +225,7 @@ uint8_t Stk500Client::getByte()
     return b == 0 ? (uint8_t) Stk::NOSYNC : b;
 }
 
-Stk Stk500Client::readData(uint8_t size, uint8_t *buf)
+Stk Stk500Client::readData(uint16_t size, uint8_t *buf)
 {
 //    size_t read = _line.readBytes(buf, size);
 //#ifdef DEBUG
@@ -266,7 +240,7 @@ Stk Stk500Client::readData(uint8_t size, uint8_t *buf)
 
     uint32_t start = millis();
 
-    _readLen = 0;
+    _readLen = 0u;
     if (buf == NULL) {
         buf = _readBuf;
     }
@@ -279,7 +253,7 @@ Stk Stk500Client::readData(uint8_t size, uint8_t *buf)
             uint8_t b = (uint8_t) _line.read();
 #ifdef DEBUG
             if (size <= 16) {
-                if (_readLen == 0) {
+                if (_readLen == 0u) {
                     _ui.print(F("RCV"));
                 }
                 printByte(_ui, b);
@@ -289,7 +263,7 @@ Stk Stk500Client::readData(uint8_t size, uint8_t *buf)
         }
     }
 #ifdef DEBUG
-    if (_readLen > 0 && size <= 16) {
+    if (_readLen > 0u && size <= 16u) {
         _ui.println();
     }
 #endif
@@ -301,4 +275,9 @@ Stk Stk500Client::toStk(uint8_t byte)
     return byte >= (uint8_t) Stk::OK && byte <= (uint8_t) Stk::CRC_EOP ?
            (Stk) byte :
            Stk::FAILED;
+}
+
+void Stk500Client::resetAddress()
+{
+    _extendedAddress = 0xFF;
 }

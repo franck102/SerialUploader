@@ -11,7 +11,7 @@ enum class Stk : char
     ADC_MEASURE_OK = 0x17,  // Not used
     PWM_CHANNEL_ERROR = 0x18,  // Not used
     PWM_ADJUST_OK = 0x19,  // Not used
-    CRC_EOP = 0x20,  // 'SPACE'
+    CRC_EOP = 0x20  // 'SPACE'
 };
 
 enum class StkCommand
@@ -42,11 +42,16 @@ enum class StkCommand
     READ_SIGN = 0x75,  // 'u'
     READ_OSCCAL = 0x76,  // 'v'
     READ_FUSE_EXT = 0x77,  // 'w'
-    READ_OSCCAL_EXT = 0x78,  // 'x'
+    READ_OSCCAL_EXT = 0x78  // 'x'
 };
 
 enum class StkParam : uint8_t
 {
     SW_MAJOR = 0x81,
     STK_SW_MINOR = 0x82
+};
+
+enum class AvrCommand : uint8_t
+{
+    AVR_OP_LOAD_EXT_ADDR = 0x4d
 };
