@@ -24,7 +24,7 @@ SdFat sd;
 #ifdef LCD_ADDRESS
 SDUI __sdui(sd);
 UploaderUI &&ui = LcdUI(__sdui);
-#elif SERIAL_UI
+#elif defined(SERIAL_UI)
 UploaderUI &&ui = SerialUI(SERIAL_UI);
 #else
 UploaderUI &&ui = SDUI(sd);
@@ -97,7 +97,7 @@ void loop()
             break;
 
         case UploadState::CheckFlags:
-            if (statusFlags & WDRF) {
+            if (statusFlags & _BV(WDRF)) {
                 ui.println(F("Uploader timed out, please reset"));
                 uploadState = UploadState::Error;
             }

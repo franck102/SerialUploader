@@ -23,7 +23,6 @@ public:
 private:
     HardwareSerial &_line;
     const uint32_t _baudRate;
-
 };
 
 

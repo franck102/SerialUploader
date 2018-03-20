@@ -41,7 +41,6 @@ bool SerialUI::begin()
 {
     _line.begin(_baudRate);
     while (!_line);
-
     return true;
 }
 

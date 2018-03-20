@@ -16,8 +16,8 @@
 // Connect programmer:PIN_RESET to target:DTR if you define PIN_DTR
 // Connect programmer:PIN_RESET to target:RST if you define PIN_RESET
 // Connecting programmer:DTR to target:DTR doesn't work for me, tips welcome...
-#define PIN_RESET 4
-//#define PIN_DTR 4
+//#define PIN_RESET 4
+#define PIN_DTR 4
 
 // How long to keep the reset pin low to reset the target board
 #define DELAY_RESET 100
