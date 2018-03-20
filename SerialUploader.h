@@ -28,37 +28,24 @@
 // Delay in ms after each flash write to the target. Found in original implementations, uncomment to use
 //#define DELAY_FLASH_WRITE 50
 
+// Uncomment to use an LCD UI
+// #define LCD_ADDRESS 0x27
 
-// See ifdefs below
-//#define PROGRAMMER_UNO
-#define PROGRAMMER_MEGA
-//#define PROGRAMMER_DEBUG
+#ifndef SERIAL_PORT_HARDWARE1   // e.g. Uno, Pro mini
 
-#ifdef PROGRAMMER_DEBUG
-#define SERIAL_UI Serial
-#endif
-
-// Target board on Serial, UI on the SD card
-#ifdef PROGRAMMER_UNO
-
-// What HardwareSerial instance to use to communicate with the target board
+// Which serial port to use to program the target board
 #define SERIAL_TARGET Serial
-// Pins to pull up high to avoid noise on SERIAL_TARGET. Needed for example on ATMega2560's Serial1
-//#define SERIAL_RX 19 // USART1_RX
-//#define SERIAL_TX 18 // USART1_TX
 
-// What HardwareSerial instance to use if using serial-based UI
-//#define SERIAL_UI Serial
+#else                           // e.g. ATMega2560
 
-#endif // PROGRAMMER_UNO
-
-// Target board on Serial1, UI on Serial
-#ifdef PROGRAMMER_MEGA
-#define SERIAL_TARGET Serial1
+#define SERIAL_TARGET SERIAL_PORT_HARDWARE1
+// Those two pins will be pulled high to avoid noise on the serial line; needed on atmega2560 Serial1
 #define SERIAL_RX 19 // USART1_RX
 #define SERIAL_TX 18 // USART1_TX
-//#define SERIAL_UI Serial
-#endif // PROGRAMMER_MEGA
+
+#define SERIAL_UI Serial
+
+#endif // SERIAL_PORT_HARDWARE1
 
 // ================================================
 
