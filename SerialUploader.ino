@@ -29,7 +29,6 @@ UploaderUI &&ui = SerialUI(SERIAL_UI);
 #else
 UploaderUI &&ui = SDUI(sd);
 #endif
-//UploaderUI &ui = __ui;
 
 #ifdef SERIAL_TARGET
 Stk500Client client(ui, SERIAL_TARGET);
@@ -99,7 +98,7 @@ void loop()
 
         case UploadState::CheckFlags:
             if (statusFlags & WDRF) {
-                ui.println("Uploader timed out, please reset");
+                ui.println(F("Uploader timed out, please reset"));
                 uploadState = UploadState::Error;
             }
             else {
@@ -258,9 +257,9 @@ bool readSignature()
         ui.println(F("Unknown MCU, need page size"));
         return false;
     }
-    ui.print("AVR part: "); ui.println(mcuSignature.desc);
-    ui.print("Flash size: "); ui.println(mcuSignature.flashSize);
-    ui.print("Page size: "); ui.println(mcuSignature.pageSize);
+    ui.print(F("AVR part: ")); ui.println(mcuSignature.desc);
+    ui.print(F("Flash size: ")); ui.println(mcuSignature.flashSize);
+    ui.print(F("Page size: ")); ui.println(mcuSignature.pageSize);
 
     // Get parameters, for fun
     response = client.getParameter(StkParam::SW_MAJOR);
@@ -298,11 +297,6 @@ UploadState upload()
             ui.println(F("SD read failure!"));
             return UploadState::Error;
         }
-//        if ((count % 2) != 0) {
-//            ui.println("Uneven byte count received from sketch source!");
-//            done = true;
-//            return;
-//        }
         if (count > 0) {
             status = client.loadAddress(byteAddress / 2);
             if (!check(status, F("Could not load address."))) {

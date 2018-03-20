@@ -24,11 +24,6 @@ void Stk500Client::begin(unsigned long baudRate)
     while (_line.available() > 0) {
         _line.read();
     }
-#ifdef DEBUG
-    _ui.print("Stk500 started at ");
-    _ui.print(baudRate);
-    _ui.println();
-#endif
 }
 
 void Stk500Client::end()
