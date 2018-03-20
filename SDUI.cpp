@@ -42,10 +42,3 @@ void SDUI::end()
     _boardsFile.close();
     UploaderUI::end();
 }
-
-//void SDUI::flush()
-//{
-//    Print::flush();
-//    _log.flush();
-//}
-

@@ -57,7 +57,8 @@
 #define SERIAL_TARGET Serial1
 #define SERIAL_RX 19 // USART1_RX
 #define SERIAL_TX 18 // USART1_TX
-//#define SERIAL_UI Serial
+#define SERIAL_UI Serial
+#define LCD_ADDRESS 0x27
 #endif // PROGRAMMER_MEGA
 
 // ================================================

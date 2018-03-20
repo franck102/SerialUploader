@@ -17,10 +17,14 @@
 #include "SDUI.h"
 #include "Signatures.h"
 #include "BaudRateChoices.h"
+#include "LcdUI.h"
 
 SdFat sd;
 
-#ifdef SERIAL_UI
+#ifdef LCD_ADDRESS
+SDUI __sdui(sd);
+UploaderUI &&ui = LcdUI(__sdui);
+#elif SERIAL_UI
 UploaderUI &&ui = SerialUI(SERIAL_UI);
 #else
 UploaderUI &&ui = SDUI(sd);
@@ -95,7 +99,7 @@ void loop()
 
         case UploadState::CheckFlags:
             if (statusFlags & WDRF) {
-                ui.println("Uploader timed out, please reset to retry.");
+                ui.println("Uploader timed out, please reset");
                 uploadState = UploadState::Error;
             }
             else {
@@ -132,7 +136,7 @@ void loop()
                 }
             } else {
                 // auto-detect, out of options
-                ui.println(F("Could not synchronize with target board."));
+                ui.println(F("Could not synchronize w/ target"));
                 uploadState = UploadState::Error;
             }
             break;
@@ -215,7 +219,7 @@ bool sync(uint32_t baudRate)
 
     resetTarget();
 
-    ui.print(F("Synching at "));
+    ui.print(F("Trying "));
     ui.print(baudRate);
     ui.print(F(" bps..."));
     // Sync with target
@@ -233,7 +237,7 @@ bool sync(uint32_t baudRate)
         return false;
     }
     ui.println(F(" done."));
-    ui.println(F("AVR device initialized and ready to accept instructions."));
+    ui.println(F("AVR device initialized and ready"));
     return true;
 }
 
@@ -251,12 +255,23 @@ bool readSignature()
     }
     ui.println();
     if (! identifyMCU(response.data, response.size)) {
-        ui.println(F("Unrecognized MCU, please specify page size in boards.txt"));
+        ui.println(F("Unknown MCU, need page size"));
         return false;
     }
     ui.print("AVR part: "); ui.println(mcuSignature.desc);
     ui.print("Flash size: "); ui.println(mcuSignature.flashSize);
     ui.print("Page size: "); ui.println(mcuSignature.pageSize);
+
+    // Get parameters, for fun
+    response = client.getParameter(StkParam::SW_MAJOR);
+    uint8_t major = response.data[0];
+    response = client.getParameter(StkParam::STK_SW_MINOR);
+    ui.print(F("Stk500 kit version: "));
+    ui.print(major, DEC);
+    ui.print('.');
+    ui.println(response.data[0], DEC);
+    wdt_reset();
+
     return true;
 }
 
@@ -265,26 +280,9 @@ UploadState upload()
     StkResponse response;
     Stk status;
 
-//    response = client.getSignon();
-//    if (! check(response, F("Could not get signon"))) {
-//        return;
-//    }
-//    ui.print("Signon: "); printData(response); ui.println();
-
-
-    // Get parameters, for fun
-    response = client.getParameter(StkParam::SW_MAJOR);
-    uint8_t major = response.data[0];
-    response = client.getParameter(StkParam::STK_SW_MINOR);
-    ui.print(F("Bootloader version: "));
-    ui.print(major, DEC);
-    ui.print('.');
-    ui.println(response.data[0], DEC);
-    wdt_reset();
-
     // Program
     status = client.enterProgramming();
-    if (!check(status, F("Could not enter programming mode."))) {
+    if (!check(status, F("Could not enter programming mode"))) {
         return UploadState::Error;
     }
     ui.println(F("Writing flash..."));
@@ -323,7 +321,7 @@ UploadState upload()
     ui.print(byteAddress);
     ui.println(F(" bytes of flash written."));
 
-    ui.println(F("Verifying flash memory against the sketch..."));
+    ui.println(F("Verifying flash..."));
 
     sketch.reset();
     byteAddress = 0;
@@ -357,9 +355,9 @@ UploadState upload()
             }
             for (int i = 0; i < count; ++i) {
                 if (hex[i] != targetBuf[i]) {
-                    ui.print(F("Read flash error: data mismatch at byte "));
+                    ui.print(F("Vrfy error at byte "));
                     ui.println(byteAddress + i, HEX);
-                    ui.print(F("Expected: 0x"));
+                    ui.print(F("Exp: 0x"));
                     ui.print(hex[i], HEX);
                     ui.print(F(", Got: 0x"));
                     ui.println(targetBuf[i], HEX);
@@ -372,13 +370,13 @@ UploadState upload()
     } while (count > 0);
 
     ui.print(byteAddress);
-    ui.println(F(" bytes of flash verified."));
+    ui.println(F("b verified."));
 
     status = client.leaveProgramming();
     if (!check(status, F("Could not leave programming mode."))) {
         return UploadState::Error;
     }
-    ui.println(F("Programming done, thank you."));
+    ui.println(F("Uploading done."));
 //    client.end();
     return UploadState::Success;
 }

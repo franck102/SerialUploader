@@ -24,7 +24,6 @@ public:
 
 #endif //ARDUINO_UPLOADERUI_H
 
-
 //
 //class ArrayChoice : public UIChoices
 //{
